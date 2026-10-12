@@ -93,7 +93,14 @@ function emptyStateTemplate(searchTerm) {
  * entender o React muito melhor depois de ter vivido isso.
  */
 export function renderPatientList(patients, searchTerm, container) {
-  // escreva aqui
+  if (patients.length === 0) {
+    container.innerHTML = emptyStateTemplate(searchTerm);
+    return;
+  }
+
+  container.innerHTML = patients
+    .map(patientCardTemplate)
+    .join('');
 }
 
 /** Atualiza o contador de resultados. */

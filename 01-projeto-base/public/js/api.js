@@ -71,3 +71,17 @@ export async function getPatient(id) {
    mensagem e repasse para quem chamou, em vez de inventar um
    texto genérico.
    ============================================================ */
+
+export async function createPatient(patient) {
+  const response = await fetch(PATIENTS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patient),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Não foi possível adicionar (HTTP ${response.status})`);
+  }
+
+  return response.json();
+}

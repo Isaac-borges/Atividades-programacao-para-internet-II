@@ -32,6 +32,26 @@
          Nenhum evento é registrado aqui: isso é papel do app.js.
          O HTML descreve a ESTRUTURA, não o comportamento.
     ------------------------------------------------------- -->
+
+    <section class="patient-form" aria-label="Novo Paciente">
+        <h2 class="patient-form__title">Novo Paciente</h2>
+        <div clas="patient-form__grid">
+            <div>
+                <label class="form-label" for="patient-name-input">Paciente</label>
+                <input id="patient-name-input" class="form-control" type="text" autocomplete="off" />
+            </div>
+            <div>
+                <label class="form-label" for="patient-name-input">Paciente</label>
+                <input id="patient-name-input" class="form-control" type="text" autocomplete="off" />
+            </div>
+            <div>
+                <label class="form-label" for="patient-name-input">Paciente</label>
+                <input id="patient-name-input" class="form-control" type="text" autocomplete="off" />
+            </div>
+        </div>
+        <button id="save-button" class="btn btn-success mt-3" type="button">Cadastrar paciente</button>
+        <p id="form-feedback" class="med-form__feedback" role="alert"></p>
+    </section>
     <section class="toolbar" aria-label="Filtros da lista de pacientes">
       <div class="toolbar__search">
         <label class="form-label" for="search-input">Buscar paciente</label>

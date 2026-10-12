@@ -26,6 +26,11 @@ const state = {
   onlyActive: false,
   isLoading: true,
   errorMessage: null,
+
+  selectedPatientId: null,
+  encounters: [],
+  isLoadingEncounters: false,
+  encounterError: null,
 };
 
 /** Quem quer ser avisado quando o estado mudar. */
@@ -89,7 +94,11 @@ export function getVisiblePatients() {
  * Três linhas de atribuição e uma chamada de notify().
  */
 export function setPatients(patients) {
-  // escreva aqui: 
+  // escreva aqui:
+  state.patients = patients;
+  state.isLoading = false;
+  state.errorMessage = null;
+  notify();
 }
 
 /**
@@ -97,7 +106,8 @@ export function setPatients(patients) {
  * Guarde o termo de busca e avise os interessados.
  */
 export function setSearchTerm(term) {
-  // escreva aqui
+  state.searchTerm = term;
+  notify();
 }
 
 /** Liga/desliga o filtro de pacientes ativos. */
@@ -110,5 +120,11 @@ export function setOnlyActive(onlyActive) {
 export function setError(message) {
   state.errorMessage = message;
   state.isLoading = false;
+  notify();
+}
+
+
+export function addPatient(patient) {
+  state.patients = [...state.patients, patient];
   notify();
 }

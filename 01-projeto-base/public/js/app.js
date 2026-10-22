@@ -16,8 +16,8 @@
  * Nunca o contrário. A tela nunca é a fonte da verdade.
  * ============================================================
  */
-import { listPatients } from "./api.js";
-import { subscribe, getState, setPatients, setSearchTerm, setOnlyActive, setError } from "./state.js";
+import { listPatients, createPatient } from "./api.js";
+import { subscribe, getState, setPatients, setSearchTerm, setOnlyActive, setError, addPatient } from "./state.js";
 import { renderPatientList, renderCounter, renderLoading, renderError } from "./render.js";
 
 /* --- Os elementos que existem na página. Buscamos UMA vez. --- */
@@ -25,6 +25,12 @@ const searchInput = document.querySelector("#search-input");
 const onlyActiveInput = document.querySelector("#only-active-input");
 const patientListElement = document.querySelector("#patient-list");
 const resultCounterElement = document.querySelector("#result-counter");
+
+const saveButton = document.querySelector("#save-button");
+const patientNameInput = document.querySelector("#patient-name-input");
+const birthDateInput = document.querySelector("#patient-birth-date-input");
+const nationalIdInput = document.querySelector("#patient-national-id-input");
+const formFeedbackElement = document.querySelector("#form-feedback");
 
 /**
  * A ÚNICA função que desenha a tela inteira.
@@ -70,5 +76,34 @@ async function start() {
     setError(error.message);
   }
 }
+
+function setFormFeedback(message, kind) {
+  formFeedbackElement.textContent = message;
+  formFeedbackElement.className = kind
+    ? `patient-form__feedback patient-form__feedback--${kind}`
+    : "patient-form__feedback";
+}
+
+saveButton.addEventListener("click", async () => {
+  saveButton.disabled = true;
+  setFormFeedback("Enviando…", null);
+  try {
+    const created = await createPatient({
+      patientName: patientNameInput.value,
+      birthDate: birthDateInput.value,
+      nationalId: nationalIdInput.value,
+    });
+
+    addPatient(created);
+    setFormFeedback(`Paciente #${created.id} cadastrado(a).`, "success");
+    patientNameInput.value = '';
+
+  } catch (error) {
+    setFormFeedback(error.message, 'error');
+  } finally {
+    saveButton.disabled = false;
+  }
+})
+
 
 start();

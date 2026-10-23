@@ -10,6 +10,7 @@
  * queremos e que voce saiba exatamente o que cada linha faz.
  */
 import express from "express";
+import { db } from "./database";
 
 const app = express();
 const PORT = 3000;
@@ -61,6 +62,44 @@ app.get("/api/health", (_request, response) => {
 //   const rows = db.prepare("SELECT ... FROM patients ORDER BY name").all();
 // E crie GET /api/patients/:id devolvendo 404 quando nao existir.
 // ============================================================
+type PatientRow = {
+  id: number;
+  name: string;
+  birth_date: string;
+  national_id: string;
+  active: number;
+};
+
+type EncounterRow = {
+  id: number;
+  patient_id: number;
+  started_at: string;
+  chief_complaint: string;
+  notes: string | null;
+};
+// -----------------------------------
+function toEncounterJson(row: EncounterRow) {
+  return {
+    id: row.id,
+    patientId: row.patient_id,
+    startedAt: row.started_at,
+    chiefComplaint: row.chief_complaint,
+    notes: row.notes
+  };
+}
+
+// -----------------------------------
+app.get("/api/patients/:id/encounters", (_request, response) => {
+  const row = db.prepare("SELECT * FROM patients WHERE id = ?").get(_request.params.id) as PatientRow | undefined;
+
+  if (!row) {
+    return response.status(404).json({ error: "Paciente não encontrado" });
+  }
+
+  const encounterRows = db.prepare("SELECT * FROM encounters WHERE patient_id = ?").all(_request.params.id) as EncounterRow[];
+  const encounters = encounterRows.map(r => toEncounterJson(r));
+  return response.json(encounters);
+})
 
 // ------------------------------------------------------------
 app.listen(PORT, () => {

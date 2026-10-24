@@ -89,7 +89,7 @@ saveButton.addEventListener("click", async () => {
   setFormFeedback("Enviando…", null);
   try {
     const created = await createPatient({
-      patientName: patientNameInput.value,
+      name: patientNameInput.value,
       birthDate: birthDateInput.value,
       nationalId: nationalIdInput.value,
     });

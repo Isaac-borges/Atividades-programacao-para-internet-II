@@ -9,7 +9,7 @@
  * A separacao em camadas chega na Semana 03. Ate la, o que
  * queremos e que voce saiba exatamente o que cada linha faz.
  */
-import express from "express";
+import express, { request } from "express";
 import { db } from "./database";
 
 const app = express();
@@ -78,6 +78,17 @@ type EncounterRow = {
   notes: string | null;
 };
 // -----------------------------------
+
+function toPatientJson(row: PatientRow) {
+  return {
+    id: row.id,
+    name: row.name,
+    birthDate: row.birth_date,
+    nationalId: row.national_id,
+    active: row.active,
+  }
+}
+
 function toEncounterJson(row: EncounterRow) {
   return {
     id: row.id,
@@ -87,19 +98,63 @@ function toEncounterJson(row: EncounterRow) {
     notes: row.notes
   };
 }
+//
+
+function isBlank(value: unknown): boolean {
+  return typeof value !== 'string' || value.trim() === '';
+}
+
+function validatePatientInput(body: any) {
+  const requiredKeys = ['name', 'birthDate', 'nationalId'];
+
+  for (const key of requiredKeys) {
+    if (isBlank(body[key])) {
+      return "Um campo obrigatório não foi preenchido";
+    }
+  }
+
+  return null;
+}
+
+app.get("/api/patients", (_request, response) => {
+  const rows = db.prepare("SELECT id, name, birth_date, national_id, active FROM patients ORDER BY name").all() as PatientRow[];
+
+  response.status(200).json(rows.map(toPatientJson));
+});
+
+app.post("/api/patients", (request, response) => {
+  const problem = validatePatientInput(request.body);
+  if (problem) {
+    response.status(400).json({ error: problem });
+    return;
+  }
+
+  const { name, birthDate, nationalId } = request.body;
+  const result = db
+    .prepare(`INSERT INTO patients (name, birth_date, national_id, active) VALUES (?, ?, ?, ?)`)
+    .run(name, birthDate, nationalId, 1);
+
+  const created = db
+    .prepare(`SELECT id, name, birth_date, national_id, active FROM patients WHERE id = ?`)
+    .get(result.lastInsertRowid) as PatientRow;
+
+  response.status(201).json(toPatientJson(created));
+});
 
 // -----------------------------------
-app.get("/api/patients/:id/encounters", (_request, response) => {
-  const row = db.prepare("SELECT * FROM patients WHERE id = ?").get(_request.params.id) as PatientRow | undefined;
+app.get("/api/patients/:id/encounters", (request, response) => {
+  const row = db.prepare("SELECT id, name, birth_date, national_id, active FROM patients WHERE id = ?")
+    .get(request.params.id) as PatientRow | undefined;
 
   if (!row) {
     return response.status(404).json({ error: "Paciente não encontrado" });
   }
 
-  const encounterRows = db.prepare("SELECT * FROM encounters WHERE patient_id = ?").all(_request.params.id) as EncounterRow[];
+  const encounterRows = db.prepare("SELECT id, patient_id, started_at, chief_complaint, notes FROM encounters WHERE patient_id = ?")
+    .all(request.params.id) as EncounterRow[];
   const encounters = encounterRows.map(r => toEncounterJson(r));
   return response.json(encounters);
-})
+});
 
 // ------------------------------------------------------------
 app.listen(PORT, () => {

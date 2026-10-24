@@ -155,6 +155,54 @@ app.get("/api/patients/:id/encounters", (request, response) => {
   const encounters = encounterRows.map(r => toEncounterJson(r));
   return response.json(encounters);
 });
+//-------------------------------------
+const DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
+function validateEncounterInput(body: any): string | null {
+  if (isBlank(body?.startedAt) || !DATE_TIME.test(body.startedAt)) {
+    return "O campo 'startedAt' deve ser AAAA-MM-DDTHH:MM.";
+  }
+
+  if (isBlank(body?.chiefComplaint)) {
+    return "O campo 'chiefComplaint' é obrigatorio.";
+  }
+
+  return null;
+}
+
+app.post("/api/patients/:id/encounters", (request, response) => {
+  const row = db.prepare(
+    "SELECT id, name, birth_date, national_id, active FROM patients WHERE id = ?"
+  ).get(request.params.id) as PatientRow | undefined;
+
+  if (!row) {
+    return response.status(404).json({ error: "Paciente não encontrado" });
+  }
+
+  const erro = validateEncounterInput(request.body);
+
+  if (erro) {
+    return response.status(400).json({ error: erro });
+  }
+
+  const newEncounter = db.prepare(`
+    INSERT INTO encounters (patient_id, started_at, chief_complaint, notes)
+    VALUES (?, ?, ?, ?)
+  `).run(
+    request.params.id,
+    request.body.startedAt,
+    request.body.chiefComplaint,
+    request.body.notes
+  );
+
+  const objetoCriado = db.prepare(`
+    SELECT id, patient_id, started_at, chief_complaint, notes
+    FROM encounters
+    WHERE id = ?
+  `).get(newEncounter.lastInsertRowid) as EncounterRow;
+
+  return response.status(201).json(toEncounterJson(objetoCriado));
+});
 
 // ------------------------------------------------------------
 app.listen(PORT, () => {

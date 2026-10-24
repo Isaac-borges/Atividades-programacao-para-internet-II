@@ -98,3 +98,6 @@ Content-Type: application/json
   "startedAt": "2026-08-17T09:30",
   "chiefComplaint": "Teste"
 }
+
+### 14. FALHA PROPOSITAL: listar encounters de paciente inexistente -> esperado 404
+GET {{host}}/api/patients/9999/encounters

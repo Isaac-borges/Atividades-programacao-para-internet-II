@@ -59,75 +59,93 @@ function validateMedicationInput(body: any) {
 
 // ============================================================
 // PASSO 1 — GET /api/medications
-//   db.prepare("SELECT ... FROM medication_orders").all()
-//   Nao esqueca de traduzir snake_case -> camelCase antes de responder.
 // ============================================================
-app.get('/api/medications', (_request, response) => {
+
+app.get('/api/medications', (request, response) => {
+  const patientName =
+    typeof request.query.patientName === 'string'
+      ? request.query.patientName.trim()
+      : '';
+
   const rows = db
     .prepare(
       `SELECT id, patient_name, medication_name, dosage,
               route, scheduled_at, notes
-          FROM medication_orders
-          ORDER BY scheduled_at ASC`
-    ).all() as MedicationRow[];
+         FROM medication_orders
+        WHERE patient_name LIKE ?
+        ORDER BY scheduled_at ASC`
+    )
+    .all(`%${patientName}%`) as MedicationRow[];
 
   response.status(200).json(rows.map(toMedicationJson));
-})
+});
+
 // ============================================================
 // PASSO 3 — POST /api/medications
-//   valide patientName, medicationName, dosage, route, scheduledAt
-//   INSERT parametrizado -> responda 201 com o registro criado
 // ============================================================
 
 app.post('/api/medications', (request, response) => {
   const problem = validateMedicationInput(request.body);
+
   if (problem) {
     response.status(400).json({ error: problem });
     return;
   }
 
-  const { patientName, medicationName, dosage, route, scheduledAt, notes } = request.body;
+  const {
+    patientName,
+    medicationName,
+    dosage,
+    route,
+    scheduledAt,
+    notes
+  } = request.body;
+
   const result = db.prepare(
     `INSERT INTO medication_orders
     (patient_name, medication_name, dosage, route, scheduled_at, notes)
     VALUES (?, ?, ?, ?, ?, ?)`
-  ).run(patientName, medicationName, dosage, route, scheduledAt, isBlank(notes) ? null : notes.trim());
+  ).run(
+    patientName,
+    medicationName,
+    dosage,
+    route,
+    scheduledAt,
+    isBlank(notes) ? null : notes.trim()
+  );
 
   const created = db
     .prepare(
       `SELECT id, patient_name, medication_name, dosage, route, scheduled_at, notes
-        FROM medication_orders WHERE id = ?`
+       FROM medication_orders WHERE id = ?`
     )
     .get(result.lastInsertRowid) as MedicationRow;
 
   response.status(201).json(toMedicationJson(created));
-})
+});
 
 // ============================================================
 // PASSO 4 — GET /api/medications/:id
-//   db.prepare("SELECT ... WHERE id = ?").get(id)
-//   undefined -> 404
 // ============================================================
 
 app.get('/api/medications/:id', (request, response) => {
   const row = db
     .prepare(
       `SELECT id, patient_name, medication_name, dosage, route, scheduled_at, notes
-        FROM medication_orders WHERE id = ?`
-    ).get(request.params.id) as MedicationRow;
+       FROM medication_orders WHERE id = ?`
+    )
+    .get(request.params.id) as MedicationRow;
 
   if (!row) {
     response.status(404).json({ error: 'Prescrição não encontrada' });
     return;
   }
 
-  response.status(200).json(toMedicationJson(row))
+  response.status(200).json(toMedicationJson(row));
 });
 
 // ============================================================
 // PASSO 5 — DELETE /api/medications/:id
-//   db.prepare("DELETE FROM medication_orders WHERE id = ?").run(id)
-//   responda 204, sem corpo
 // ============================================================
 
 app.delete('/api/medications/:id', (request, response) => {

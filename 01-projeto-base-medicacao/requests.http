@@ -59,3 +59,6 @@ DELETE {{host}}/api/medications/9999
 
 ### 10. Confirmar que sumiu da lista
 GET {{host}}/api/medications
+
+### 11. BÔNUS: filtrar prescrições por paciente
+GET {{host}}/api/medications?patientName=Igor

@@ -41,3 +41,7 @@ Nenhuma biblioteca além de `express`, `better-sqlite3`, `tsx`, `typescript` e B
 ## IA nesta atividade
 
 **Chat apenas** (ChatGPT, Gemini, Claude). Nada de modo agente, Copilot autônomo, Cursor Agent ou "vibe coding". Você lê, digita e entende cada linha antes de seguir.
+
+## Bônus — Ordenação
+
+A ordenação é feita diretamente no SQL com `ORDER BY scheduled_at ASC`, para que o banco já devolva os registros na ordem necessária, evitando uma ordenação adicional no JavaScript.

@@ -29,12 +29,14 @@ import { Router } from "express";
  * ============================================================
  */
 
- export const patientsRouter = Router();
- const patientsController = PatientController()
- 
- patientsRouter.get("/", patientsController.create, patientsController.list);
- patientsRouter.get("/:id", patientsController.getById);
- patientsRouter.post("/", patientsController.create);
+export const patientsRouter = Router();
+const patientsController = new PatientController();
+
+patientsRouter.get("/api/patients", patientsController.list);
+patientsRouter.get("/api/patients/:id", patientsController.getById);
+patientsRouter.post("/api/patients", patientsController.create);
+//patientsRouter.get("/:id", patientsController.getById);
+//patientsRouter.post("/", patientsController.create);
 
 
 /**

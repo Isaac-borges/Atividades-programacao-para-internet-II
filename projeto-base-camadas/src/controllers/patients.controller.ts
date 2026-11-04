@@ -26,20 +26,80 @@
  *   };
  * ============================================================
  */
+import { Request, Response } from 'express'
+import { PatientService, ConflictError } from "../services/patients.service.ts"
 
-class PatientController(){
 
-    public list = (_request, response) => {
-      const rows = db
-        .prepare("SELECT id, name, birth_date, national_id, active, photo_path FROM patients ORDER BY name")
-        .all() as PatientRow[];
-    
-      response.status(200).json(rows.map(toPatientJson));
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+function isBlank(value: unknown): boolean {
+  return typeof value !== "string" || value.trim() === "";
+}
+
+function validatePatientInput(body: any): string | null {
+  if (isBlank(body?.name)) {
+    return "O campo 'name' e obrigatorio e nao pode ser vazio.";
+  }
+  if (isBlank(body?.birthDate) || !ISO_DATE.test(body.birthDate)) {
+    return "O campo 'birthDate' e obrigatorio e deve estar no formato AAAA-MM-DD.";
+  }
+  if (isBlank(body?.nationalId)) {
+    return "O campo 'nationalId' e obrigatorio.";
+  }
+  return null;
+}
+
+export class PatientController {
+  private patientService: PatientService;
+
+  constructor() {
+    this.patientService = new PatientService();
+  }
+
+  public list = async (_request: Request, response: Response) => {
+    const rows = await this.patientService.listAll();
+
+    response.status(200).json(rows);
+  }
+
+  public getById = async (request: Request, response: Response) => {
+    const id = Number(request.params.id);
+
+    if (isNaN(id)) {
+      response.status(400).json({ error: "ID Inválido." });
+      return;
     }
 
-    getById = (req, res) => { ... }
+    const row = await this.patientService.getById(id);
 
-    create = (req, res) => { ... }
+    if (!row) {
+      response.status(404).json({ error: "Paciente nao encontrado." });
+      return;
+    }
+
+    response.status(200).json(row);
+  }
+
+  public create = async (request: Request, response: Response) => {
+    try {
+      const problem = validatePatientInput(request.body);
+
+      if (problem) {
+        response.status(400).json({ error: problem });
+        return;
+      }
+
+      const { name, birthDate, nationalId } = request.body;
+
+      const created = await this.patientService.create(name, birthDate, nationalId);
+
+      response.status(201).json(created);
+    } catch (error) {
+      if (error instanceof ConflictError) {
+        return response.status(409).json({ error: error.message });
+      }
+    }
+  }
 }
 
 

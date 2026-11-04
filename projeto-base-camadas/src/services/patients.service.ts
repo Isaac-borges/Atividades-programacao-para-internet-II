@@ -30,6 +30,83 @@
  * ============================================================
  */
 
+import { db } from '../db/database.ts'
+
+type PatientRow = {
+  id: number;
+  name: string;
+  birth_date: string;
+  national_id: string;
+  active: number;
+  photo_path: string | null;
+};
+
+function toPatientJson(row: PatientRow) {
+  return {
+    id: row.id,
+    name: row.name,
+    birthDate: row.birth_date,
+    nationalId: row.national_id,
+    active: row.active === 1,
+    photoUrl: row.photo_path,
+  };
+}
+
+
+export class ConflictError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ConflictError";
+  }
+}
+
+export class PatientService {
+
+  async listAll() {
+    const rows = db
+      .prepare("SELECT id, name, birth_date, national_id, active, photo_path FROM patients ORDER BY name")
+      .all() as PatientRow[];
+
+    return rows.map(toPatientJson)
+  }
+
+  async getById(id: number) {
+    const row = db
+      .prepare("SELECT id, name, birth_date, national_id, active, photo_path FROM patients WHERE id = ?")
+      .get(id) as PatientRow | undefined;
+
+    if (!row) {
+      return undefined;
+    }
+
+    return toPatientJson(row);
+  }
+
+  async create(name: string, birthDate: string, nationalId: string) {
+    const duplicate = db
+      .prepare("SELECT id FROM patients WHERE national_id = ?")
+      .get(nationalId.trim());
+
+    if (duplicate) {
+      throw new ConflictError("Ja existe um paciente com este CNS.");
+    }
+
+    const result = db
+      .prepare(
+        `INSERT INTO patients (name, birth_date, national_id, active)
+         VALUES (?, ?, ?, 1)`
+      )
+      .run(name.trim(), birthDate, nationalId.trim());
+
+    const created = db
+      .prepare("SELECT id, name, birth_date, national_id, active, photo_path FROM patients WHERE id = ?")
+      .get(result.lastInsertRowid) as PatientRow;
+
+    return toPatientJson(created);
+  }
+}
+
+
 /**
  * ============================================================
  * TODO 13 (Encontro 2, continuacao) -- Service de upload

@@ -23,3 +23,11 @@
  * do paciente) nao chega ate aqui.
  * ============================================================
  */
+import { Router } from "express";
+import { EncounterController } from "../controllers/encounters.controller.ts";
+
+export const encountersRouter = Router({ mergeParams: true });
+const encountersController = new EncounterController();
+
+encountersRouter.get("/", encountersController.list);
+encountersRouter.post("/", encountersController.create);

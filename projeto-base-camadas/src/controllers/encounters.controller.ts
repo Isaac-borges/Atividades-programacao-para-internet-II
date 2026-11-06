@@ -17,3 +17,50 @@
  *   };
  * ============================================================
  */
+
+import type { Request, Response } from "express";
+import { EncounterService } from "../services/encounters.service.ts";
+
+export class EncounterController {
+  private encounterService = new EncounterService();
+
+  public list = async (request: Request, response: Response) => {
+    const patientId = String(request.params.id);
+
+    const encounters = await this.encounterService.list(patientId);
+
+    if (encounters === null) {
+      response.status(404).json({
+        error: "Paciente nao encontrado.",
+      });
+      return;
+    }
+
+    response.status(200).json(encounters);
+  };
+
+  public create = async (request: Request, response: Response) => {
+    const patientId = String(request.params.id);
+
+    const result = await this.encounterService.create(
+      patientId,
+      request.body ?? {}
+    );
+
+    if (result.kind === "patientNotFound") {
+      response.status(404).json({
+        error: "Paciente nao encontrado.",
+      });
+      return;
+    }
+
+    if (result.kind === "invalidInput") {
+      response.status(400).json({
+        error: result.message,
+      });
+      return;
+    }
+
+    response.status(201).json(result.encounter);
+  };
+}

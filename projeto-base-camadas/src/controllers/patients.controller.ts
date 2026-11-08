@@ -27,7 +27,8 @@
  * ============================================================
  */
 import { Request, Response } from 'express'
-import { PatientService, ConflictError } from "../services/patients.service.ts"
+import { PatientService } from "../services/patients.service.ts"
+import { ConflictError } from '../errors/HttpError.ts';
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 

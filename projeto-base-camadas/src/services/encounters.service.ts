@@ -18,6 +18,7 @@
  * Regras de negocio, SQL e conversao dos dados ficam aqui, sem req/res.
  */
 import { db } from "../db/database.ts";
+import { BadRequestError, NotFoundError } from "../errors/HttpError.ts";
 
 type EncounterRow = {
   id: number;
@@ -56,7 +57,7 @@ function patientExists(patientId: string): boolean {
 export class EncounterService {
   async list(patientId: string) {
     if (!patientExists(patientId)) {
-      return null;
+      throw new NotFoundError("Paciente não encontrado.");
     }
 
     const rows = db
@@ -73,23 +74,17 @@ export class EncounterService {
 
   async create(patientId: string, data: CreateEncounterInput) {
     if (!patientExists(patientId)) {
-      return { kind: "patientNotFound" as const };
+      throw new NotFoundError("Paciente não encontrado");
     }
 
     const { startedAt, chiefComplaint, notes } = data;
 
     if (!isNonBlankString(chiefComplaint)) {
-      return {
-        kind: "invalidInput" as const,
-        message: "O campo 'chiefComplaint' e obrigatorio.",
-      };
+      throw new BadRequestError("O campo chiefComplaint é obrigatorio");
     }
 
     if (!isNonBlankString(startedAt) || !ISO_DATE_TIME.test(startedAt)) {
-      return {
-        kind: "invalidInput" as const,
-        message: "O campo 'startedAt' e obrigatorio no formato AAAA-MM-DDTHH:MM.",
-      };
+      throw new BadRequestError("O campo 'startedAt' e obrigatorio no formato AAAA-MM-DDTHH:MM.");
     }
 
     const result = db
@@ -111,6 +106,6 @@ export class EncounterService {
       )
       .get(result.lastInsertRowid) as EncounterRow;
 
-    return { kind: "created" as const, encounter: toEncounterJson(created) };
+    return toEncounterJson(created);
   }
 }

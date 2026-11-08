@@ -31,7 +31,7 @@
  */
 
 import { db } from '../db/database.ts'
-
+import { ConflictError, NotFoundError } from '../errors/HttpError.ts';
 type PatientRow = {
   id: number;
   name: string;
@@ -53,13 +53,6 @@ function toPatientJson(row: PatientRow) {
 }
 
 
-export class ConflictError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ConflictError";
-  }
-}
-
 export class PatientService {
 
   async listAll() {
@@ -76,7 +69,7 @@ export class PatientService {
       .get(id) as PatientRow | undefined;
 
     if (!row) {
-      return undefined;
+      throw new NotFoundError("Paciente não encontrado.");
     }
 
     return toPatientJson(row);

@@ -29,13 +29,6 @@ export class EncounterController {
 
     const encounters = await this.encounterService.list(patientId);
 
-    if (encounters === null) {
-      response.status(404).json({
-        error: "Paciente nao encontrado.",
-      });
-      return;
-    }
-
     response.status(200).json(encounters);
   };
 
@@ -47,20 +40,6 @@ export class EncounterController {
       request.body ?? {}
     );
 
-    if (result.kind === "patientNotFound") {
-      response.status(404).json({
-        error: "Paciente nao encontrado.",
-      });
-      return;
-    }
-
-    if (result.kind === "invalidInput") {
-      response.status(400).json({
-        error: result.message,
-      });
-      return;
-    }
-
-    response.status(201).json(result.encounter);
+    response.status(201).json(result);
   };
 }

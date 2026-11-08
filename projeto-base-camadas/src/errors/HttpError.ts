@@ -17,3 +17,45 @@
  * os retornos especiais de erro por `throw new AlgumHttpError()`.
  * ============================================================
  */
+
+export class HttpError extends Error {
+  public statusCode: number;
+  public details?: unknown;
+
+  constructor(statusCode: number, message: string, details?: unknown) {
+    super(message);
+    this.statusCode = statusCode;
+    this.details = details;
+    this.name = this.constructor.name;
+  }
+}
+
+export class BadRequestError extends HttpError {
+  constructor(message = "Bad Request", details?: unknown) {
+    super(400, message, details);
+  }
+}
+
+export class NotFoundError extends HttpError {
+  constructor(message = "Not Found", details?: unknown) {
+    super(404, message, details);
+  }
+}
+
+export class ConflictError extends HttpError {
+  constructor(message = "Conflict", details?: unknown) {
+    super(409, message, details);
+  }
+}
+
+export class UnprocessableEntityError extends HttpError {
+  constructor(message = "Unprocessable Entity", details?: unknown) {
+    super(422, message, details);
+  }
+}
+
+export class PayloadTooLargeError extends HttpError {
+  constructor(message = "Payload Too Large", details?: unknown) {
+    super(413, message, details);
+  }
+}

@@ -28,7 +28,7 @@
  */
 import { Request, Response } from 'express'
 import { PatientService } from "../services/patients.service.ts"
-import { ConflictError } from '../errors/HttpError.ts';
+import { BadRequestError, ConflictError, NotFoundError } from '../errors/HttpError.ts';
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -66,39 +66,24 @@ export class PatientController {
     const id = Number(request.params.id);
 
     if (isNaN(id)) {
-      response.status(400).json({ error: "ID Inválido." });
-      return;
+      throw new BadRequestError("ID Inválido.");
     }
 
     const row = await this.patientService.getById(id);
 
     if (!row) {
-      response.status(404).json({ error: "Paciente nao encontrado." });
-      return;
+      throw new NotFoundError("Paciente não encontrado.")
     }
 
     response.status(200).json(row);
   }
 
   public create = async (request: Request, response: Response) => {
-    try {
-      const problem = validatePatientInput(request.body);
+    const { name, birthDate, nationalId } = request.body;
 
-      if (problem) {
-        response.status(400).json({ error: problem });
-        return;
-      }
+    const created = await this.patientService.create(name, birthDate, nationalId);
 
-      const { name, birthDate, nationalId } = request.body;
-
-      const created = await this.patientService.create(name, birthDate, nationalId);
-
-      response.status(201).json(created);
-    } catch (error) {
-      if (error instanceof ConflictError) {
-        return response.status(409).json({ error: error.message });
-      }
-    }
+    response.status(201).json(created);
   }
 }
 

@@ -5,13 +5,14 @@
 import { listPatients, createPatient } from "./api.js";
 import { state, setPatients, addPatient, setFormError, clearFormError } from "./state.js";
 import { render } from "./render.js";
+import { renderApiError } from "./errors.js";
 
 async function init() {
   try {
     const patients = await listPatients();
     setPatients(patients);
   } catch (err) {
-    setFormError(err.message ?? "Falha ao carregar pacientes.");
+    renderApiError(err);
   }
   render();
 }
@@ -34,7 +35,8 @@ document.getElementById("patient-form").addEventListener("submit", async (event)
   } catch (err) {
     // TODO 14 (Encontro 2): trocar por renderApiError(err.apiError)
     // quando o contrato de erro { error: { message, ... } } estiver pronto.
-    setFormError(err.apiError?.error ?? "Falha ao cadastrar paciente.");
+    renderApiError(err.apiError);
+    //setFormError(err.apiError?.error ?? "Falha ao cadastrar paciente.");
   }
   render();
 });

@@ -28,7 +28,7 @@
  */
 import { Request, Response } from 'express'
 import { PatientService } from "../services/patients.service.ts"
-import { BadRequestError, ConflictError, NotFoundError } from '../errors/HttpError.ts';
+import { BadRequestError, ConflictError, NotFoundError, UnprocessableEntityError } from '../errors/HttpError.ts';
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -84,6 +84,22 @@ export class PatientController {
     const created = await this.patientService.create(name, birthDate, nationalId);
 
     response.status(201).json(created);
+  }
+
+  public uploadPhoto = async (request: Request, response: Response) => {
+    const id = Number(request.params.id);
+
+    if (isNaN(id)) {
+      throw new BadRequestError("ID Inválido.");
+    }
+
+    if (!request.file) {
+      throw new UnprocessableEntityError("Não foi possivel enviar");
+    }
+
+    const patient = await this.patientService.setPhoto(id, request.file.filename);
+
+    response.status(200).json(patient);
   }
 }
 

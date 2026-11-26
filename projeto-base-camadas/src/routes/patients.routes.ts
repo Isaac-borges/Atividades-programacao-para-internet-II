@@ -2,6 +2,7 @@ import { Router } from "express";
  import { PatientController } from "../controllers/patients.controller.ts";
 import { validate } from "../middlewares/validate.ts";
 import { createPatientSchema } from "../validation/patients.schemas.ts";
+import { uploadPhoto } from "../middlewares/upload.ts";
 
 /**
  * ============================================================
@@ -48,3 +49,5 @@ patientsRouter.post("/", validate(createPatientSchema), patientsController.creat
  *   patientsRouter.post("/:id/photo", uploadPhoto.single("photo"), patientsController.uploadPhoto);
  * ============================================================
  */
+
+patientsRouter.post("/:id/photo", uploadPhoto.single("photo"), patientsController.uploadPhoto)

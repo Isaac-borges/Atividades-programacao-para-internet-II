@@ -97,6 +97,23 @@ export class PatientService {
 
     return toPatientJson(created);
   }
+
+  async setPhoto(id: number, filename: string) {
+    const patient = await this.getById(id);
+    if (!patient) {
+      throw new NotFoundError("Paciente não encontrado.");
+    }
+
+    const result = db
+      .prepare("UPDATE patients SET photo_path = ? WHERE id = ?")
+      .run(`/uploads/${filename}`, id);
+
+    const updated = db
+      .prepare("SELECT id, name, birth_date, national_id, active, photo_path FROM patients WHERE id = ?")
+      .get(id) as PatientRow;
+
+    return toPatientJson(updated);
+  }
 }
 
 

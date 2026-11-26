@@ -2,8 +2,8 @@
  * Orquestracao -- PRONTA. Liga os elementos do DOM as acoes de
  * estado + api. Nenhuma logica de negocio mora aqui.
  */
-import { listPatients, createPatient } from "./api.js";
-import { state, setPatients, addPatient, setFormError, clearFormError } from "./state.js";
+import { listPatients, createPatient, uploadPatientPhoto } from "./api.js";
+import { setPatients, addPatient, clearFormError, setPreviewUrl } from "./state.js";
 import { render } from "./render.js";
 import { renderApiError } from "./errors.js";
 
@@ -12,16 +12,26 @@ async function init() {
     const patients = await listPatients();
     setPatients(patients);
   } catch (err) {
-    renderApiError(err);
+    renderApiError(err.apiError);
   }
   render();
 }
 
-document.getElementById("patient-form").addEventListener("submit", async (event) => {
+const form = document.getElementById("patient-form");
+const photoInput = form.elements.photo;
+
+// Preview local: nenhuma requisicao ao servidor acontece aqui.
+photoInput.addEventListener("change", () => {
+  const file = photoInput.files[0];
+  setPreviewUrl(file ? URL.createObjectURL(file) : null);
+  render();
+});
+
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   clearFormError();
 
-  const form = event.target;
+  const file = photoInput.files[0];
   const payload = {
     name: form.name.value,
     birthDate: form.birthDate.value,
@@ -30,13 +40,12 @@ document.getElementById("patient-form").addEventListener("submit", async (event)
 
   try {
     const created = await createPatient(payload);
-    addPatient(created);
+    const patient = file ? await uploadPatientPhoto(created.id, file) : created;
+    addPatient(patient);
     form.reset();
+    setPreviewUrl(null);
   } catch (err) {
-    // TODO 14 (Encontro 2): trocar por renderApiError(err.apiError)
-    // quando o contrato de erro { error: { message, ... } } estiver pronto.
     renderApiError(err.apiError);
-    //setFormError(err.apiError?.error ?? "Falha ao cadastrar paciente.");
   }
   render();
 });

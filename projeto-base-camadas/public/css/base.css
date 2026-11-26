@@ -9,5 +9,8 @@ body { background: var(--color-bg); color: var(--color-text); font-family: syste
 .patient-card__photo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: var(--color-primary-soft); flex-shrink: 0; }
 .patient-card__name { font-weight: 600; margin: 0 0 2px; }
 .patient-card__meta { color: var(--color-muted); font-size: 0.85rem; margin: 0; }
+.photo-preview { margin-top: var(--space-3); }
+.photo-preview:empty { display: none; }
+.photo-preview__image { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 1px solid var(--color-border); }
 .form-error { color: var(--color-danger); background: var(--color-danger-soft); border-radius: var(--radius); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-3); }
 .field-error { color: var(--color-danger); font-size: 0.8rem; margin-top: 2px; }

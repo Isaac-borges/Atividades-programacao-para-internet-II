@@ -21,19 +21,23 @@
 
     <section aria-label="Novo paciente" class="mb-4">
       <form id="patient-form" class="row g-2">
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-3">
           <input class="form-control" name="name" placeholder="Nome completo" required />
         </div>
-        <div class="col-6 col-md-3">
+        <div class="col-6 col-md-2">
           <input class="form-control" name="birthDate" type="date" required />
         </div>
         <div class="col-6 col-md-3">
           <input class="form-control" name="nationalId" placeholder="CNS" required />
         </div>
         <div class="col-12 col-md-2">
+          <input class="form-control" name="photo" type="file" accept="image/jpeg,image/png" aria-label="Foto do paciente" />
+        </div>
+        <div class="col-12 col-md-2">
           <button class="btn btn-success w-100" type="submit">Cadastrar</button>
         </div>
       </form>
+      <div id="photo-preview" class="photo-preview"></div>
     </section>
 
     <ul id="patient-list" class="patient-list"></ul>

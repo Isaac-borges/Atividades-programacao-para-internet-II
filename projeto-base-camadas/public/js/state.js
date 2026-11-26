@@ -7,6 +7,7 @@ export const state = {
   patients: [],
   formError: null,
   fieldErrors: {},
+  previewUrl: null,
 };
 
 export function setPatients(patients) {
@@ -25,4 +26,9 @@ export function setFormError(message, fieldErrors = {}) {
 export function clearFormError() {
   state.formError = null;
   state.fieldErrors = {};
+}
+
+export function setPreviewUrl(url) {
+  if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
+  state.previewUrl = url;
 }
